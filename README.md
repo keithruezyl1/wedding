@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Huey & Cherry — Wedding Payments
 
-## Getting Started
+A small, password-gated app for ~12 friends to track and pay shares of two wedding
+expense pools and upload proof. Next.js + Supabase + Vercel.
 
-First, run the development server:
+The canonical specs live in [`PRD.md`](PRD.md) (what) and
+[`DesignGuidelines.md`](DesignGuidelines.md) (how it looks & moves). Motion vocabulary
+reference: [`animation-vocab.md`](animation-vocab.md).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Local dev
+1. `npm install`
+2. Copy `.env.example` to `.env.local` and fill values (Supabase URL + anon/publishable key; gate password).
+3. `npm run dev` → http://localhost:3000
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tests / checks
+- `npm test` — logic unit tests (money math, name normalization)
+- `npm run typecheck` — TypeScript
+- `npm run build` — production build
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Security note
+This is a private app shared by invitation (single gate password). Supabase RLS is
+enabled with permissive policies so the anon client can read/write; the gate password
+is the real access barrier. Do not store sensitive data here.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Structure
+- `app/page.tsx` — gate → name → onboarding → dashboard state machine
+- `app/api/gate/route.ts` — server-side password check
+- `lib/` — constants, money math, account + payment data access, supabase client
+- `components/` — screens (Gate, NameEntry, Onboarding, Dashboard, ExpenseColumn) and modals
+- `supabase/schema.sql` — reference copy of the database schema
