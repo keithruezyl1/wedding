@@ -2,19 +2,21 @@
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Account } from '@/lib/account'
-import { POOLS, Pool } from '@/lib/constants'
-import { fetchPayers, Payer } from '@/lib/payments'
+import { POOLS, Pool, PoolKind } from '@/lib/constants'
+import { fetchPayers, deletePayment, Payer } from '@/lib/payments'
 import ExpenseColumn from '@/components/ExpenseColumn'
 import PaymentModal from '@/components/PaymentModal'
 import SuccessModal from '@/components/SuccessModal'
-import ProofModal from '@/components/ProofModal'
+import ProofModal, { ProofSelection } from '@/components/ProofModal'
+import SendMoneyModal from '@/components/SendMoneyModal'
 
 export default function Dashboard({ account, onReplay }: { account: Account; onReplay: () => void }) {
   const [fare, setFare] = useState<Payer[]>([])
   const [fee, setFee] = useState<Payer[]>([])
   const [payPool, setPayPool] = useState<Pool | null>(null)
-  const [selected, setSelected] = useState<Payer | null>(null)
+  const [selected, setSelected] = useState<ProofSelection | null>(null)
   const [success, setSuccess] = useState(false)
+  const [sendOpen, setSendOpen] = useState(false)
 
   const load = useCallback(async () => {
     const [f1, f2] = await Promise.all([fetchPayers('fare'), fetchPayers('fee')])
@@ -26,6 +28,11 @@ export default function Dashboard({ account, onReplay }: { account: Account; onR
   const paidFare = fare.some((p) => p.account_id === account.id)
   const paidFee = fee.some((p) => p.account_id === account.id)
 
+  async function handleDelete(kind: PoolKind, accountId: string) {
+    await deletePayment(accountId, kind)
+    await load()
+  }
+
   return (
     <div className="min-h-screen px-4 sm:px-8 py-12 animate-fade-in">
       <header className="text-center mb-10">
@@ -34,13 +41,23 @@ export default function Dashboard({ account, onReplay }: { account: Account; onR
         <p className="font-serif tracking-[0.3em] uppercase text-charcoal/50 text-sm">Ormoc · 2026</p>
         <h1 className="font-serif text-4xl sm:text-5xl text-charcoal mt-1">Huey &amp; Cherry</h1>
         <p className="text-charcoal/55 mt-2">Welcome, {account.display_name}.</p>
+
+        <button onClick={() => setSendOpen(true)}
+          className="mt-5 inline-flex items-center gap-2 rounded-full border border-amber/60 text-charcoal/80 px-6 py-2.5 hover:bg-amber hover:text-charcoal transition-colors duration-300">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M3.75 3.75h6v6h-6v-6zm10.5 0h6v6h-6v-6zm-10.5 10.5h6v6h-6v-6zm10.5 3h3m-3 3h6m0-6v.01" />
+          </svg>
+          Where to send money
+        </button>
       </header>
 
       <div className="mx-auto max-w-5xl flex flex-col md:flex-row gap-6">
         <ExpenseColumn pool={POOLS.fare} payers={fare} hasPaid={paidFare}
-          onPay={() => setPayPool(POOLS.fare)} onSelectPayer={setSelected} />
+          onPay={() => setPayPool(POOLS.fare)} onSelectPayer={(p) => setSelected({ payer: p, kind: 'fare' })} />
         <ExpenseColumn pool={POOLS.fee} payers={fee} hasPaid={paidFee}
-          onPay={() => setPayPool(POOLS.fee)} onSelectPayer={setSelected} />
+          onPay={() => setPayPool(POOLS.fee)} onSelectPayer={(p) => setSelected({ payer: p, kind: 'fee' })} />
       </div>
 
       <div className="text-center mt-10">
@@ -53,7 +70,9 @@ export default function Dashboard({ account, onReplay }: { account: Account; onR
         onClose={() => setPayPool(null)}
         onSuccess={async () => { setPayPool(null); await load(); setSuccess(true) }} />
       <SuccessModal open={success} name={account.display_name} onClose={() => setSuccess(false)} />
-      <ProofModal payer={selected} onClose={() => setSelected(null)} />
+      <ProofModal selection={selected} currentAccountId={account.id}
+        onClose={() => setSelected(null)} onDelete={handleDelete} />
+      <SendMoneyModal open={sendOpen} onClose={() => setSendOpen(false)} />
     </div>
   )
 }

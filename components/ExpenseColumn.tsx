@@ -31,8 +31,17 @@ export default function ExpenseColumn({
         {payers.map((p) => (
           <li key={p.account_id}>
             <button onClick={() => onSelectPayer(p)}
-              className="w-full text-left rounded-lg px-3 py-2 text-charcoal/80 hover:bg-cream hover:text-charcoal transition-colors">
-              {p.display_name}
+              className="group w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-charcoal/80 hover:bg-cream hover:text-charcoal transition-colors">
+              <span className="truncate">{p.display_name}</span>
+              <span className="flex shrink-0 items-center gap-1.5 text-sm text-charcoal/40 group-hover:text-coral transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                View proof
+              </span>
             </button>
           </li>
         ))}

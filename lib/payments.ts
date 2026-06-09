@@ -47,3 +47,19 @@ export async function submitPayment(
 
   return proof_url
 }
+
+// Remove a payment and its proof image (best-effort on the storage object).
+export async function deletePayment(accountId: string, kind: PoolKind): Promise<void> {
+  // Remove any stored proof variants for this (account, kind).
+  await supabase.storage
+    .from('proofs')
+    .remove([`${accountId}/${kind}.jpg`, `${accountId}/${kind}.jpeg`, `${accountId}/${kind}.png`, `${accountId}/${kind}.webp`])
+    .catch(() => { /* object may not exist; ignore */ })
+
+  const { error } = await supabase
+    .from('payments')
+    .delete()
+    .eq('account_id', accountId)
+    .eq('kind', kind)
+  if (error) throw error
+}

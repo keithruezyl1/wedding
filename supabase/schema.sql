@@ -33,6 +33,7 @@ create policy "accounts_insert" on public.accounts for insert with check (true);
 create policy "payments_read"   on public.payments for select using (true);
 create policy "payments_insert" on public.payments for insert with check (true);
 create policy "payments_update" on public.payments for update using (true) with check (true);
+create policy "payments_delete" on public.payments for delete using (true);
 
 -- ── Storage: public `proofs` bucket ──────────────────────────────────────────
 
@@ -43,3 +44,4 @@ on conflict (id) do nothing;
 create policy "proofs_read"   on storage.objects for select using (bucket_id = 'proofs');
 create policy "proofs_insert" on storage.objects for insert with check (bucket_id = 'proofs');
 create policy "proofs_update" on storage.objects for update using (bucket_id = 'proofs') with check (bucket_id = 'proofs');
+create policy "proofs_delete" on storage.objects for delete using (bucket_id = 'proofs');
