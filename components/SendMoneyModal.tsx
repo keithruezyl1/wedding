@@ -13,7 +13,7 @@ export default function SendMoneyModal({ open, onClose }: { open: boolean; onClo
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/img/qr.jpg" alt="GoTyme InstaPay QR code for Keith Ruezyl Tagarao"
-          className="mx-auto w-full max-w-[18rem] rounded-2xl ring-1 ring-sand" />
+          className="mx-auto max-w-xs max-h-96 w-auto object-contain rounded-2xl ring-1 ring-sand" />
 
         <div className="mt-6 flex flex-wrap gap-3 justify-center">
           <a href="/img/qr.jpg" download="huey-cherry-gotyme-qr.jpg"
