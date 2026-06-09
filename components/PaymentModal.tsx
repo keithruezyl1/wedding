@@ -73,9 +73,15 @@ export default function PaymentModal({
               onChange={(e) => pick(e.target.files?.[0] ?? null)} />
           </label>
 
-          <label className="mt-5 flex items-start gap-3 text-sm text-charcoal/80">
-            <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)}
-              className="mt-1 accent-amber" />
+          <label className="mt-5 flex items-start gap-3 text-sm text-charcoal/80 cursor-pointer">
+            <span className="relative mt-0.5 inline-block h-5 w-5 shrink-0">
+              <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)}
+                className="peer absolute inset-0 z-0 h-full w-full cursor-pointer appearance-none rounded-md border border-sand bg-white transition-colors checked:border-amber checked:bg-amber focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber/50" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"
+                className="pointer-events-none absolute inset-0 z-10 m-auto h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
             <span>I confirm I have paid and uploaded the correct proof.</span>
           </label>
 
