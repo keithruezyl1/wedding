@@ -37,3 +37,15 @@ export async function createOrLoadAccount(rawName: string): Promise<Account> {
   }
   return created as Account
 }
+
+// Whether a stored account id still exists in the DB. Fails open (returns true)
+// on network/db error so we never log someone out spuriously.
+export async function accountExists(id: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('id')
+    .eq('id', id)
+    .maybeSingle()
+  if (error) return true
+  return !!data
+}

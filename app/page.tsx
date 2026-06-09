@@ -4,7 +4,7 @@ import Gate from '@/components/Gate'
 import NameEntry from '@/components/NameEntry'
 import Onboarding from '@/components/Onboarding'
 import Dashboard from '@/components/Dashboard'
-import { Account } from '@/lib/account'
+import { Account, accountExists } from '@/lib/account'
 
 type Phase = 'gate' | 'name' | 'onboarding' | 'dashboard'
 const LS_ACCOUNT = 'wedding.account'
@@ -16,11 +16,29 @@ export default function Page() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_ACCOUNT)
-      if (raw) { setAccount(JSON.parse(raw)); setPhase('dashboard') }
-    } catch { /* ignore */ }
-    setReady(true)
+    let cancelled = false
+    async function restore() {
+      try {
+        const raw = localStorage.getItem(LS_ACCOUNT)
+        if (raw) {
+          const acc: Account = JSON.parse(raw)
+          // Revalidate against the DB: if the account was removed (e.g. a data
+          // reset), drop the stale session and send them back to the gate.
+          const exists = await accountExists(acc.id)
+          if (cancelled) return
+          if (exists) {
+            setAccount(acc)
+            setPhase('dashboard')
+          } else {
+            localStorage.removeItem(LS_ACCOUNT)
+            setPhase('gate')
+          }
+        }
+      } catch { /* ignore */ }
+      if (!cancelled) setReady(true)
+    }
+    restore()
+    return () => { cancelled = true }
   }, [])
 
   if (!ready) return null
