@@ -35,14 +35,13 @@ export default function ExpenseColumn({
               <span className="truncate">{p.display_name}</span>
               <span className="flex shrink-0 items-center gap-2.5 text-sm">
                 <span className="font-medium text-charcoal/80 tabular-nums">{peso(p.amount)}</span>
-                <span className="flex items-center gap-1 text-charcoal/35 group-hover:text-coral transition-colors">
+                <span className="text-charcoal/35 group-hover:text-coral transition-colors" aria-label="View proof">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">
                     <path strokeLinecap="round" strokeLinejoin="round"
                       d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
-                  View proof
                 </span>
               </span>
             </button>

@@ -8,6 +8,12 @@ export interface ProofSelection {
   payer: Payer
 }
 
+function formatTimestamp(iso: string): string {
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })
+}
+
 export default function ProofModal({
   selection, currentAccountId, onClose, onDelete,
 }: {
@@ -38,9 +44,18 @@ export default function ProofModal({
   return (
     <Modal open={!!selection} onClose={close} labelledBy="proof-title">
       {payer && (
-        <div className="text-center">
+        <div className="relative text-center">
+          <button onClick={close} aria-label="Close"
+            className="absolute -top-1 -right-1 rounded-full p-1.5 text-charcoal/40 hover:text-charcoal hover:bg-cream transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+
           <h3 id="proof-title" className="font-serif text-2xl text-charcoal">{payer.display_name}</h3>
-          <p className="text-coral font-medium mb-4 tabular-nums">{peso(payer.amount)}</p>
+          <p className="text-coral font-medium tabular-nums">{peso(payer.amount)}</p>
+          <p className="text-charcoal/45 text-xs mb-4">{formatTimestamp(payer.created_at)}</p>
+
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={payer.proof_url} alt={`Proof from ${payer.display_name}`}
                className="w-full rounded-xl ring-1 ring-sand object-contain max-h-[60vh]" />
@@ -60,14 +75,10 @@ export default function ProofModal({
               </div>
             </div>
           ) : (
-            <div className="mt-6 flex flex-wrap gap-3 justify-center">
-              <button onClick={close}
-                className="rounded-full bg-amber px-7 py-2.5 text-charcoal hover:bg-coral transition-colors duration-300">
-                Close
-              </button>
-              {canDelete && (
+            canDelete && (
+              <div className="mt-6">
                 <button onClick={() => setConfirming(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-ruin/80 hover:text-ruin hover:bg-ruin/5 transition-colors">
+                  className="inline-flex items-center gap-2 rounded-full bg-ruin px-7 py-2.5 text-white hover:bg-ruin/85 transition-colors duration-300">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" strokeWidth="1.7" className="h-4 w-4">
                     <path strokeLinecap="round" strokeLinejoin="round"
@@ -75,8 +86,8 @@ export default function ProofModal({
                   </svg>
                   Delete proof
                 </button>
-              )}
-            </div>
+              </div>
+            )
           )}
         </div>
       )}

@@ -7,13 +7,14 @@ export interface Payer {
   display_name: string
   proof_url: string
   amount: number
+  created_at: string
 }
 
 // All contributions for a kind, joined to the contributor's display name.
 export async function fetchPayers(kind: PoolKind): Promise<Payer[]> {
   const { data, error } = await supabase
     .from('payments')
-    .select('id, account_id, proof_url, amount, accounts(display_name)')
+    .select('id, account_id, proof_url, amount, created_at, accounts(display_name)')
     .eq('kind', kind)
     .order('created_at', { ascending: true })
   if (error) throw error
@@ -23,6 +24,7 @@ export async function fetchPayers(kind: PoolKind): Promise<Payer[]> {
     account_id: r.account_id,
     proof_url: r.proof_url,
     amount: Number(r.amount) || 0,
+    created_at: r.created_at,
     display_name: r.accounts?.display_name ?? 'Someone',
   }))
 }
