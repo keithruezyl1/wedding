@@ -1,6 +1,5 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
-import Image from 'next/image'
 import { Account } from '@/lib/account'
 import { POOLS, Pool } from '@/lib/constants'
 import { fetchPayers, deletePayment, Payer } from '@/lib/payments'
@@ -9,6 +8,7 @@ import PaymentModal from '@/components/PaymentModal'
 import SuccessModal from '@/components/SuccessModal'
 import ProofModal, { ProofSelection } from '@/components/ProofModal'
 import SendMoneyModal from '@/components/SendMoneyModal'
+import LogoSlideshow from '@/components/LogoSlideshow'
 
 export default function Dashboard({ account, onReplay }: { account: Account; onReplay: () => void }) {
   const [fare, setFare] = useState<Payer[]>([])
@@ -33,8 +33,7 @@ export default function Dashboard({ account, onReplay }: { account: Account; onR
   return (
     <div className="min-h-screen px-4 sm:px-8 py-12 animate-fade-in">
       <header className="text-center mb-10">
-        <Image src="/img/logo.jpg" alt="Huey & Cherry" width={80} height={80}
-          className="mx-auto mb-4 h-20 w-20 rounded-full object-cover ring-1 ring-sand shadow-sm" />
+        <LogoSlideshow className="mx-auto mb-4 h-20 w-20" />
         <p className="font-serif tracking-[0.3em] uppercase text-charcoal/50 text-sm">Ormoc · 2026</p>
         <h1 className="font-serif text-4xl sm:text-5xl text-charcoal mt-1">Huey &amp; Cherry</h1>
         <p className="text-charcoal/55 mt-2">Welcome, {account.display_name}.</p>
