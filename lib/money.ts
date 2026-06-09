@@ -1,20 +1,19 @@
-import { PEOPLE_COUNT, Pool } from '@/lib/constants'
+import { Pool } from '@/lib/constants'
 
 export function peso(amount: number): string {
   return '₱' + Math.round(amount).toLocaleString('en-PH')
 }
 
 export interface Progress {
-  paidCount: number
-  paidAmount: number
+  amount: number
   fraction: number
   label: string
 }
 
-export function poolProgress(pool: Pool, paidCount: number): Progress {
-  const clamped = Math.max(0, Math.min(PEOPLE_COUNT, paidCount))
-  const paidAmount = clamped * pool.share
-  const fraction = clamped / PEOPLE_COUNT
-  const label = `${peso(paidAmount)} / ${peso(pool.total)} · ${clamped} of ${PEOPLE_COUNT} paid`
-  return { paidCount: clamped, paidAmount, fraction, label }
+// Progress is driven by the total pesos contributed toward a pool's goal.
+export function poolProgress(pool: Pool, totalAmount: number): Progress {
+  const amount = Math.max(0, totalAmount)
+  const fraction = pool.total > 0 ? Math.min(1, amount / pool.total) : 0
+  const label = `${peso(amount)} of ${peso(pool.total)}`
+  return { amount, fraction, label }
 }

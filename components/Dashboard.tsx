@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Account } from '@/lib/account'
-import { POOLS, Pool, PoolKind } from '@/lib/constants'
+import { POOLS, Pool } from '@/lib/constants'
 import { fetchPayers, deletePayment, Payer } from '@/lib/payments'
 import ExpenseColumn from '@/components/ExpenseColumn'
 import PaymentModal from '@/components/PaymentModal'
@@ -25,11 +25,8 @@ export default function Dashboard({ account, onReplay }: { account: Account; onR
 
   useEffect(() => { load() }, [load])
 
-  const paidFare = fare.some((p) => p.account_id === account.id)
-  const paidFee = fee.some((p) => p.account_id === account.id)
-
-  async function handleDelete(kind: PoolKind, accountId: string) {
-    await deletePayment(accountId, kind)
+  async function handleDelete(payer: Payer) {
+    await deletePayment(payer)
     await load()
   }
 
@@ -54,10 +51,10 @@ export default function Dashboard({ account, onReplay }: { account: Account; onR
       </header>
 
       <div className="mx-auto max-w-5xl flex flex-col md:flex-row gap-6">
-        <ExpenseColumn pool={POOLS.fare} payers={fare} hasPaid={paidFare}
-          onPay={() => setPayPool(POOLS.fare)} onSelectPayer={(p) => setSelected({ payer: p, kind: 'fare' })} />
-        <ExpenseColumn pool={POOLS.fee} payers={fee} hasPaid={paidFee}
-          onPay={() => setPayPool(POOLS.fee)} onSelectPayer={(p) => setSelected({ payer: p, kind: 'fee' })} />
+        <ExpenseColumn pool={POOLS.fare} payers={fare}
+          onPay={() => setPayPool(POOLS.fare)} onSelectPayer={(p) => setSelected({ payer: p })} />
+        <ExpenseColumn pool={POOLS.fee} payers={fee}
+          onPay={() => setPayPool(POOLS.fee)} onSelectPayer={(p) => setSelected({ payer: p })} />
       </div>
 
       <div className="text-center mt-10">

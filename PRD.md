@@ -55,23 +55,24 @@ like a wedding invitation that happens to collect money.
 | **Account** | Identified by display name. Normalized name (trim, lowercase, single-spaced) is the unique key. One name = one account. |
 | **Returning user** | Session remembered on-device (localStorage). They skip the gate + onboarding and land on the dashboard. |
 | **Name collision** | If two people pick the same name, the second loads the first's account. Accepted tradeoff for 12 friends. |
-| **Pools** | Two fixed expense pools (below). |
-| **Share** | Each person owes a fixed share per pool. |
-| **Payment** | One payment per (person, pool). Re-uploading overwrites the prior proof. |
-| **Proof** | A required photo image, stored in Supabase Storage, visible to all. |
+| **Pools** | Two expense pools with peso goals (below). |
+| **Share** | Each pool shows a *suggested* per-person share, but contributors enter any amount they sent. |
+| **Contribution** | A person may contribute **any number of times** per pool. Each contribution records an amount + its own proof image (no overwriting). |
+| **Proof** | A required photo image per contribution, stored in Supabase Storage, visible to all. |
+| **Delete** | A contributor may delete their **own** contribution (removes the row + its proof file; the total drops accordingly). |
 
 ### The two pools
 
-| Pool | Internal `kind` | Title | Total | Share (÷12) | CTA |
+| Pool | Internal `kind` | Title | Goal | Suggested share (÷12) | CTA |
 |---|---|---|---|---|---|
-| Fare | `fare` | **The Boat to Neverland Fare** | ₱18,000 | **₱1,500** | Pay the Fare |
-| Fee | `fee` | **This House is a Home Fee** | ₱10,560 | **₱880** | Pay the Fee |
+| Fare | `fare` | **The Boat to Neverland Fare** | ₱18,000 | ₱1,500 | Pay the Fare |
+| Fee | `fee` | **This House is a Home Fee** | ₱10,560 | ₱880 | Pay the Fee |
 
 ### Progress math
-- Denominator is fixed at **12 people**.
-- A pool's filled amount = `(# of people who paid) × share`.
-- Progress fraction = `(# paid) / 12`.
-- Label format: `₱7,500 / ₱18,000 · 5 of 12 paid`.
+- A pool's raised amount = **sum of all contribution amounts** for that `kind`.
+- Progress fraction = `min(1, raised / goal)`.
+- Label format: `₱7,500 of ₱18,000`.
+- The suggested share (₱1,500 / ₱880) is shown only as a hint in the payment modal; it does not constrain the entered amount.
 - Pesos render with the `₱` glyph and `en-PH` grouping.
 
 ---
@@ -109,26 +110,28 @@ Three full-screen steps with calm, choreographed transitions:
 - Header: "Huey & Cherry · Ormoc 2026", "Welcome, {name}."
 - Two columns side by side (stacked on mobile), one per pool. Each column shows:
   - Pool title.
-  - Progress label + animated progress bar.
-  - A CTA button ("Pay the Fare" / "Pay the Fee"). Disabled and labeled "Paid ✓"
-    once this person has paid that pool.
-  - A list of payer names below. Empty state: "No one yet — be the first."
+  - Progress label (`₱raised of ₱goal`) + animated progress bar.
+  - A CTA button ("Pay the Fare" / "Pay the Fee") — always enabled (contribute any number of times).
+  - A list of contributions below, each showing contributor name + amount. Empty state:
+    "No one yet — be the first." Click a row → modal with name, amount, and proof image.
+- A "Where to send money" button (opens the GoTyme InstaPay QR modal; QR is downloadable).
 - "replay intro" link near the bottom.
 
 ### 5.5 Payment modal
 - Opened by a pool's CTA.
-- States the person's share (e.g. "Your share is ₱1,500").
+- **Amount input** ("How much did you send?", ₱) with the suggested share shown as a hint.
 - Image file picker with a live preview.
 - A **required checkbox**: "I confirm I have paid and uploaded the correct proof."
-  The **Upload button stays disabled** until both a file is chosen *and* the box is checked.
-- On Upload: image goes to Supabase Storage, the payment row is upserted, modal closes.
+  The **Upload button stays disabled** until a file is chosen, the amount is > 0, *and* the box is checked.
+- On Upload: image goes to a unique Storage path and a new contribution row (amount + proof) is inserted; modal closes.
 
 ### 5.6 Success modal
 - On-theme celebration: soft gold confetti, "Thank you, {name}", "Your contribution
   is recorded." The payer's name now appears in that pool's list and the bar advances.
 
 ### 5.7 Proof modal
-- Clicking any payer's name opens a modal showing their name + their uploaded proof image.
+- Clicking a contribution opens a modal showing the contributor's name, amount, and proof image.
+- If the contribution belongs to the current user, a **Delete proof** action (with confirm) removes it.
 
 ---
 
@@ -138,9 +141,9 @@ Three full-screen steps with calm, choreographed transitions:
 - **FR2** Submitting a name creates a new `accounts` row for a new normalized name, or returns the existing one.
 - **FR3** The session (account) persists on-device; returning users bypass gate + onboarding.
 - **FR4** Onboarding plays in full on first visit per device and is replayable on demand.
-- **FR5** Each pool shows live progress derived from the count of payers (×share, /12).
-- **FR6** A user can submit a payment for each pool exactly once; re-submitting overwrites their proof.
-- **FR7** Upload is blocked until a file is selected AND the confirmation checkbox is ticked.
+- **FR5** Each pool shows live progress = `min(1, sum(contribution amounts) / goal)`.
+- **FR6** A user can submit unlimited contributions per pool; each stores an amount + its own proof (no overwriting). A user can delete their own contribution.
+- **FR7** Upload is blocked until a file is selected, the amount is > 0, AND the confirmation checkbox is ticked.
 - **FR8** Proof images are stored in Supabase Storage and are viewable by all users.
 - **FR9** Payer lists update immediately after a successful upload (the submitter's name appears).
 - **FR10** Clicking a payer shows their name and proof image.
@@ -158,18 +161,22 @@ Three full-screen steps with calm, choreographed transitions:
 | display_name | text | as typed |
 | created_at | timestamptz | `now()` |
 
-### `payments`
+### `payments` (one row per contribution)
 | column | type | notes |
 |---|---|---|
 | id | uuid (pk) | |
 | account_id | uuid (fk → accounts) | `on delete cascade` |
 | kind | text | `'fare'` or `'fee'` (checked) |
+| amount | numeric | pesos sent in this contribution (> 0) |
 | proof_url | text | Storage public URL |
 | created_at | timestamptz | `now()` |
-| — | unique | `(account_id, kind)` |
+
+- No uniqueness constraint — a person may have many rows per `kind`.
+- RLS policies allow anon read/insert/update/delete.
 
 ### Storage
-- Public-read bucket `proofs`. Object key: `proofs/{account_id}/{kind}.{ext}`.
+- Public-read bucket `proofs`. Object key: `proofs/{account_id}/{kind}/{uuid}.{ext}` (unique per contribution).
+- Policies allow anon read/insert/update/delete on the bucket.
 
 ### Security posture
 - No per-user auth. RLS enabled with permissive policies; the **gate password is the

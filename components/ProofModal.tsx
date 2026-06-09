@@ -2,11 +2,10 @@
 import { useState } from 'react'
 import Modal from '@/components/Modal'
 import { Payer } from '@/lib/payments'
-import { PoolKind } from '@/lib/constants'
+import { peso } from '@/lib/money'
 
 export interface ProofSelection {
   payer: Payer
-  kind: PoolKind
 }
 
 export default function ProofModal({
@@ -15,7 +14,7 @@ export default function ProofModal({
   selection: ProofSelection | null
   currentAccountId: string
   onClose: () => void
-  onDelete: (kind: PoolKind, accountId: string) => Promise<void>
+  onDelete: (payer: Payer) => Promise<void>
 }) {
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -26,10 +25,10 @@ export default function ProofModal({
   function close() { setConfirming(false); setBusy(false); onClose() }
 
   async function remove() {
-    if (!selection) return
+    if (!payer) return
     setBusy(true)
     try {
-      await onDelete(selection.kind, selection.payer.account_id)
+      await onDelete(payer)
       close()
     } catch {
       setBusy(false)
@@ -40,14 +39,15 @@ export default function ProofModal({
     <Modal open={!!selection} onClose={close} labelledBy="proof-title">
       {payer && (
         <div className="text-center">
-          <h3 id="proof-title" className="font-serif text-2xl text-charcoal mb-4">{payer.display_name}</h3>
+          <h3 id="proof-title" className="font-serif text-2xl text-charcoal">{payer.display_name}</h3>
+          <p className="text-coral font-medium mb-4 tabular-nums">{peso(payer.amount)}</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={payer.proof_url} alt={`Proof from ${payer.display_name}`}
                className="w-full rounded-xl ring-1 ring-sand object-contain max-h-[60vh]" />
 
           {confirming ? (
             <div className="mt-6">
-              <p className="text-charcoal/70 text-sm mb-3">Remove this proof? This marks you unpaid again.</p>
+              <p className="text-charcoal/70 text-sm mb-3">Remove this contribution? It will be subtracted from the total.</p>
               <div className="flex gap-3 justify-center">
                 <button onClick={remove} disabled={busy}
                   className="rounded-full bg-ruin px-6 py-2.5 text-white hover:bg-ruin/85 transition-colors duration-300 disabled:opacity-60">

@@ -12,14 +12,15 @@ create table if not exists public.accounts (
   created_at timestamptz not null default now()
 );
 
--- payments: one row per (account, kind); proof_url points at Storage
+-- payments: one row per contribution. A person may contribute many times per kind.
+-- `amount` is the pesos sent in that contribution. No uniqueness constraint.
 create table if not exists public.payments (
   id uuid primary key default gen_random_uuid(),
   account_id uuid not null references public.accounts(id) on delete cascade,
   kind text not null check (kind in ('fare','fee')),
+  amount numeric not null default 0,
   proof_url text not null,
-  created_at timestamptz not null default now(),
-  unique (account_id, kind)
+  created_at timestamptz not null default now()
 );
 
 -- ── RLS (permissive; the shared gate password is the real access barrier) ─────

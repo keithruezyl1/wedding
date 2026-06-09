@@ -11,13 +11,16 @@ describe('peso', () => {
 })
 
 describe('poolProgress', () => {
-  it('computes paid amount, fraction, and label from payer count', () => {
-    const p = poolProgress(POOLS.fare, 5)
-    expect(p.paidAmount).toBe(7500)
-    expect(p.fraction).toBeCloseTo(5 / 12)
-    expect(p.label).toBe('₱7,500 / ₱18,000 · 5 of 12 paid')
+  it('computes amount, fraction, and label from the total contributed', () => {
+    const p = poolProgress(POOLS.fare, 7500)
+    expect(p.amount).toBe(7500)
+    expect(p.fraction).toBeCloseTo(7500 / 18000)
+    expect(p.label).toBe('₱7,500 of ₱18,000')
   })
-  it('is full at 12 payers', () => {
-    expect(poolProgress(POOLS.fee, 12).fraction).toBe(1)
+  it('clamps the fraction to 1 when the goal is exceeded', () => {
+    expect(poolProgress(POOLS.fee, 20000).fraction).toBe(1)
+  })
+  it('is zero at no contributions', () => {
+    expect(poolProgress(POOLS.fare, 0).fraction).toBe(0)
   })
 })

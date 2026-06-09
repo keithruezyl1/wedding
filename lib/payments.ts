@@ -2,64 +2,66 @@ import { supabase } from '@/lib/supabaseClient'
 import { PoolKind } from '@/lib/constants'
 
 export interface Payer {
+  id: string
   account_id: string
   display_name: string
   proof_url: string
+  amount: number
 }
 
-// All payments for a kind, joined to the payer's display name.
+// All contributions for a kind, joined to the contributor's display name.
 export async function fetchPayers(kind: PoolKind): Promise<Payer[]> {
   const { data, error } = await supabase
     .from('payments')
-    .select('account_id, proof_url, accounts(display_name)')
+    .select('id, account_id, proof_url, amount, accounts(display_name)')
     .eq('kind', kind)
     .order('created_at', { ascending: true })
   if (error) throw error
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data ?? []).map((r: any) => ({
+    id: r.id,
     account_id: r.account_id,
     proof_url: r.proof_url,
+    amount: Number(r.amount) || 0,
     display_name: r.accounts?.display_name ?? 'Someone',
   }))
 }
 
-// Upload proof image to Storage and upsert the payment row. Returns public URL.
+// Upload proof to a unique path and insert a new contribution row. Returns its id.
 export async function submitPayment(
   accountId: string,
   kind: PoolKind,
   file: File,
+  amount: number,
 ): Promise<string> {
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-  const path = `${accountId}/${kind}.${ext}`
+  const path = `${accountId}/${kind}/${crypto.randomUUID()}.${ext}`
 
   const up = await supabase.storage
     .from('proofs')
-    .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' })
+    .upload(path, file, { contentType: file.type || 'image/jpeg' })
   if (up.error) throw up.error
 
   const { data: pub } = supabase.storage.from('proofs').getPublicUrl(path)
   const proof_url = pub.publicUrl
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('payments')
-    .upsert({ account_id: accountId, kind, proof_url }, { onConflict: 'account_id,kind' })
+    .insert({ account_id: accountId, kind, proof_url, amount })
+    .select('id')
+    .single()
   if (error) throw error
-
-  return proof_url
+  return data.id as string
 }
 
-// Remove a payment and its proof image (best-effort on the storage object).
-export async function deletePayment(accountId: string, kind: PoolKind): Promise<void> {
-  // Remove any stored proof variants for this (account, kind).
-  await supabase.storage
-    .from('proofs')
-    .remove([`${accountId}/${kind}.jpg`, `${accountId}/${kind}.jpeg`, `${accountId}/${kind}.png`, `${accountId}/${kind}.webp`])
-    .catch(() => { /* object may not exist; ignore */ })
-
-  const { error } = await supabase
-    .from('payments')
-    .delete()
-    .eq('account_id', accountId)
-    .eq('kind', kind)
+// Remove a single contribution and its proof image (best-effort on the file).
+export async function deletePayment(payment: { id: string; proof_url: string }): Promise<void> {
+  const marker = '/proofs/'
+  const i = payment.proof_url.indexOf(marker)
+  if (i >= 0) {
+    const path = decodeURIComponent(payment.proof_url.slice(i + marker.length))
+    await supabase.storage.from('proofs').remove([path]).catch(() => { /* ignore missing */ })
+  }
+  const { error } = await supabase.from('payments').delete().eq('id', payment.id)
   if (error) throw error
 }
