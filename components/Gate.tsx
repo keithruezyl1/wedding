@@ -24,8 +24,6 @@ export default function Gate({ onPass }: { onPass: () => void }) {
       <Image src="/img/last.jpg" alt="" fill priority className="object-cover" />
       <div className="absolute inset-0 bg-charcoal/55" />
       <form onSubmit={submit} className={`relative z-10 text-center px-6 ${err ? 'animate-shake' : ''}`}>
-        <Image src="/img/logo.jpg" alt="Huey & Cherry" width={112} height={112}
-          className="mx-auto mb-5 h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover ring-2 ring-ivory/70 shadow-xl" />
         <p className="font-serif text-ivory/80 tracking-[0.3em] uppercase text-sm mb-3">Ormoc · 2026</p>
         <h1 className="font-serif text-ivory text-5xl sm:text-6xl mb-8">Huey &amp; Cherry</h1>
         <input

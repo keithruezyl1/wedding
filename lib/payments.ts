@@ -29,6 +29,31 @@ export async function fetchPayers(kind: PoolKind): Promise<Payer[]> {
   }))
 }
 
+// One account's contributions, split by pool kind (for the profile screen).
+export async function fetchMyContributions(accountId: string): Promise<{ fare: Payer[]; fee: Payer[] }> {
+  const { data, error } = await supabase
+    .from('payments')
+    .select('id, account_id, proof_url, amount, created_at, kind, accounts(display_name)')
+    .eq('account_id', accountId)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  const out: { fare: Payer[]; fee: Payer[] } = { fare: [], fee: [] }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const r of (data ?? []) as any[]) {
+    const row: Payer = {
+      id: r.id,
+      account_id: r.account_id,
+      proof_url: r.proof_url,
+      amount: Number(r.amount) || 0,
+      created_at: r.created_at,
+      display_name: r.accounts?.display_name ?? 'Someone',
+    }
+    if (r.kind === 'fare') out.fare.push(row)
+    else if (r.kind === 'fee') out.fee.push(row)
+  }
+  return out
+}
+
 // Upload proof to a unique path and insert a new contribution row. Returns its id.
 export async function submitPayment(
   accountId: string,

@@ -4,9 +4,10 @@ import Gate from '@/components/Gate'
 import NameEntry from '@/components/NameEntry'
 import Onboarding from '@/components/Onboarding'
 import Dashboard from '@/components/Dashboard'
+import Profile from '@/components/Profile'
 import { Account, accountExists } from '@/lib/account'
 
-type Phase = 'gate' | 'name' | 'onboarding' | 'dashboard'
+type Phase = 'gate' | 'name' | 'onboarding' | 'dashboard' | 'profile'
 const LS_ACCOUNT = 'wedding.account'
 const LS_ONBOARDED = 'wedding.onboarded'
 
@@ -62,7 +63,21 @@ export default function Page() {
     }} />
 
   if (phase === 'dashboard' && account)
-    return <Dashboard account={account} onReplay={() => setPhase('onboarding')} />
+    return (
+      <Dashboard account={account}
+        onReplay={() => setPhase('onboarding')}
+        onOpenProfile={() => setPhase('profile')} />
+    )
+
+  if (phase === 'profile' && account)
+    return (
+      <Profile account={account}
+        onBack={() => setPhase('dashboard')}
+        onAccountChange={(a) => {
+          setAccount(a)
+          localStorage.setItem(LS_ACCOUNT, JSON.stringify(a))
+        }} />
+    )
 
   return <Gate onPass={() => setPhase('name')} />
 }

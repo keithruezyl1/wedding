@@ -9,8 +9,13 @@ import SuccessModal from '@/components/SuccessModal'
 import ProofModal, { ProofSelection } from '@/components/ProofModal'
 import SendMoneyModal from '@/components/SendMoneyModal'
 import LogoSlideshow from '@/components/LogoSlideshow'
+import LetterAvatar from '@/components/LetterAvatar'
 
-export default function Dashboard({ account, onReplay }: { account: Account; onReplay: () => void }) {
+export default function Dashboard({ account, onReplay, onOpenProfile }: {
+  account: Account
+  onReplay: () => void
+  onOpenProfile: () => void
+}) {
   const [fare, setFare] = useState<Payer[]>([])
   const [fee, setFee] = useState<Payer[]>([])
   const [payPool, setPayPool] = useState<Pool | null>(null)
@@ -31,7 +36,13 @@ export default function Dashboard({ account, onReplay }: { account: Account; onR
   }
 
   return (
-    <div className="min-h-screen px-4 sm:px-8 py-12 animate-fade-in">
+    <div className="relative min-h-screen px-4 sm:px-8 py-12 animate-fade-in">
+      <button onClick={onOpenProfile} aria-label="Open your profile"
+        className="absolute right-4 top-5 sm:right-8 z-10 rounded-full ring-2 ring-transparent hover:ring-amber/60 transition-shadow">
+        <LetterAvatar name={account.display_name} avatarUrl={account.avatar_url} size={44}
+          className="ring-1 ring-sand shadow-sm" />
+      </button>
+
       <header className="text-center mb-10">
         <LogoSlideshow className="mx-auto mb-4 h-20 w-20" />
         <p className="font-serif tracking-[0.3em] uppercase text-charcoal/50 text-sm">Ormoc · 2026</p>

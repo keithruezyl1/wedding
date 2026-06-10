@@ -9,6 +9,7 @@ create table if not exists public.accounts (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
   display_name text not null,
+  avatar_url text,
   created_at timestamptz not null default now()
 );
 
@@ -30,6 +31,7 @@ alter table public.payments enable row level security;
 
 create policy "accounts_read"   on public.accounts for select using (true);
 create policy "accounts_insert" on public.accounts for insert with check (true);
+create policy "accounts_update" on public.accounts for update using (true) with check (true);
 
 create policy "payments_read"   on public.payments for select using (true);
 create policy "payments_insert" on public.payments for insert with check (true);
@@ -46,3 +48,13 @@ create policy "proofs_read"   on storage.objects for select using (bucket_id = '
 create policy "proofs_insert" on storage.objects for insert with check (bucket_id = 'proofs');
 create policy "proofs_update" on storage.objects for update using (bucket_id = 'proofs') with check (bucket_id = 'proofs');
 create policy "proofs_delete" on storage.objects for delete using (bucket_id = 'proofs');
+
+-- ── Storage: public `avatars` bucket (profile photos) ────────────────────────
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+create policy "avatars_read"   on storage.objects for select using (bucket_id = 'avatars');
+create policy "avatars_insert" on storage.objects for insert with check (bucket_id = 'avatars');
+create policy "avatars_update" on storage.objects for update using (bucket_id = 'avatars') with check (bucket_id = 'avatars');
