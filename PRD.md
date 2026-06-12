@@ -55,24 +55,28 @@ like a wedding invitation that happens to collect money.
 | **Account** | Identified by display name. Normalized name (trim, lowercase, single-spaced) is the unique key. One name = one account. |
 | **Returning user** | Session remembered on-device (localStorage). They skip the gate + onboarding and land on the dashboard. |
 | **Name collision** | If two people pick the same name, the second loads the first's account. Accepted tradeoff for 12 friends. |
-| **Pools** | Two expense pools with peso goals (below). |
-| **Share** | Each pool shows a *suggested* per-person share, but contributors enter any amount they sent. |
+| **Pools** | Two shared-expense pools (below). There is **no fixed target/goal** — contributions simply accumulate. |
+| **Suggested amount** | Each pool shows a *suggested* amount (a hint based on real rates), but contributors enter any amount they sent. |
 | **Contribution** | A person may contribute **any number of times** per pool. Each contribution records an amount + its own proof image (no overwriting). |
 | **Proof** | A required photo image per contribution, stored in Supabase Storage, visible to all. |
 | **Delete** | A contributor may delete their **own** contribution (removes the row + its proof file; the total drops accordingly). |
 
 ### The two pools
 
-| Pool | Internal `kind` | Title | Goal | Suggested share (÷12) | CTA |
-|---|---|---|---|---|---|
-| Fare | `fare` | **The Boat to Neverland Fare** | ₱18,000 | ₱1,500 | Pay the Fare |
-| Fee | `fee` | **This House is a Home Fee** | ₱10,560 | ₱880 | Pay the Fee |
+| Pool | `kind` | Title | Suggested amount | CTA |
+|---|---|---|---|---|
+| Fare | `fare` | **The Boat to Neverland Fare** | ₱600 one way · ₱480 for students | Pay the Fare |
+| Fee | `fee` | **This House is a Home Fee** | ₱557 for 2 nights · ₱278 for 1 night | Pay the Fee |
 
-### Progress math
-- A pool's raised amount = **sum of all contribution amounts** for that `kind`.
-- Progress fraction = `min(1, raised / goal)`.
-- Label format: `₱7,500 of ₱18,000`.
-- The suggested share (₱1,500 / ₱880) is shown only as a hint in the payment modal; it does not constrain the entered amount.
+**Rate / schedule details** (shown in the "Where to send money" modal):
+- **Boat to Neverland (Fare):** Economy · one way · Regular ₱600 / Students ₱480 · Ferry 10:00 PM – 4:00 AM.
+- **House is a Home (Fee):** ₱6,400 total · 1 night ₱278 (1 person) · 2 nights ₱557 each (11 people).
+
+### Pooled amount (no goal)
+- There is **no target**. Each pool simply shows the **total pooled** = sum of all contribution amounts for that `kind`.
+- The total is shown as a large figure that counts up, with a contribution count beneath it.
+- A **composition strip** (a 100%-stacked bar) visualizes each contribution as a segment sized by its share of the pool — this is *not* a progress bar.
+- The suggested amount is shown only as a hint in the payment modal; it does not constrain the entered amount.
 - Pesos render with the `₱` glyph and `en-PH` grouping.
 
 ---
@@ -108,18 +112,20 @@ Three full-screen steps with calm, choreographed transitions:
 
 ### 5.4 Dashboard
 - Header: "Huey & Cherry · Ormoc 2026", "Welcome, {name}."
+- A profile avatar button (top-right) opens the user's profile.
 - Two columns side by side (stacked on mobile), one per pool. Each column shows:
   - Pool title.
-  - Progress label (`₱raised of ₱goal`) + animated progress bar.
+  - **Total pooled** (large, counts up) + contribution count, and a composition strip (no goal/target).
   - A CTA button ("Pay the Fare" / "Pay the Fee") — always enabled (contribute any number of times).
   - A list of contributions below, each showing contributor name + amount. Empty state:
     "No one yet — be the first." Click a row → modal with name, amount, and proof image.
-- A "Where to send money" button (opens the GoTyme InstaPay QR modal; QR is downloadable).
+- A "Where to send money" button — opens the GoTyme InstaPay QR modal, which also lists the
+  rate/schedule details for both pools; the QR is downloadable.
 - "replay intro" link near the bottom.
 
 ### 5.5 Payment modal
 - Opened by a pool's CTA.
-- **Amount input** ("How much did you send?", ₱) with the suggested share shown as a hint.
+- **Amount input** ("How much did you send?", ₱) with the pool's suggested amount shown as a hint.
 - Image file picker with a live preview.
 - A **required checkbox**: "I confirm I have paid and uploaded the correct proof."
   The **Upload button stays disabled** until a file is chosen, the amount is > 0, *and* the box is checked.

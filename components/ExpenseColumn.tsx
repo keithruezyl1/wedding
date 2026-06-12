@@ -1,8 +1,43 @@
 'use client'
+import { useEffect } from 'react'
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
 import { Pool } from '@/lib/constants'
-import { peso, poolProgress } from '@/lib/money'
+import { peso } from '@/lib/money'
 import { Payer } from '@/lib/payments'
-import ProgressBar from '@/components/ProgressBar'
+
+const EASE = [0.22, 1, 0.36, 1] as const
+// Alternating warm shades so each contribution segment is distinguishable.
+const SEGMENT_SHADES = ['#E8A14B', '#E07A5F', '#D98A4F', '#CF7A64', '#B07A4F', '#9C6B5E']
+
+// Animated pooled total that counts up to the current amount.
+function PooledTotal({ total }: { total: number }) {
+  const reduce = useReducedMotion()
+  const mv = useMotionValue(0)
+  const text = useTransform(mv, (v) => peso(v))
+
+  useEffect(() => {
+    if (reduce) { mv.set(total); return }
+    const controls = animate(mv, total, { duration: 1.0, ease: EASE })
+    return () => controls.stop()
+  }, [total, reduce, mv])
+
+  return <motion.span className="font-serif text-4xl sm:text-5xl text-charcoal tabular-nums">{text}</motion.span>
+}
+
+// A 100%-composition strip: each contribution is a segment sized by its share of
+// the pool. Not a progress bar — there is no target; it visualizes what's pooled.
+function CompositionStrip({ payers, total }: { payers: Payer[]; total: number }) {
+  if (total <= 0) return <div className="h-2.5 w-full rounded-full bg-sand/40" />
+  return (
+    <div className="flex h-2.5 w-full gap-px overflow-hidden rounded-full">
+      {payers.map((p, i) => (
+        <div key={p.id}
+          title={`${p.display_name}: ${peso(p.amount)}`}
+          style={{ width: `${(p.amount / total) * 100}%`, backgroundColor: SEGMENT_SHADES[i % SEGMENT_SHADES.length] }} />
+      ))}
+    </div>
+  )
+}
 
 export default function ExpenseColumn({
   pool, payers, onPay, onSelectPayer,
@@ -13,12 +48,20 @@ export default function ExpenseColumn({
   onSelectPayer: (p: Payer) => void
 }) {
   const total = payers.reduce((sum, p) => sum + p.amount, 0)
-  const prog = poolProgress(pool, total)
+  const n = payers.length
+
   return (
     <section className="flex-1 rounded-3xl bg-ivory/80 ring-1 ring-sand/60 p-7 shadow-sm">
       <h2 className="font-serif text-3xl text-charcoal text-center">{pool.title}</h2>
-      <p className="text-center text-charcoal/55 mt-1 mb-5 tabular-nums">{prog.label}</p>
-      <ProgressBar fraction={prog.fraction} />
+
+      <div className="mt-4 mb-3 text-center">
+        <PooledTotal total={total} />
+        <p className="mt-1 text-sm text-charcoal/50">
+          {n === 0 ? 'pooled so far' : `pooled · ${n} ${n === 1 ? 'contribution' : 'contributions'}`}
+        </p>
+      </div>
+
+      <CompositionStrip payers={payers} total={total} />
 
       <div className="mt-6 text-center">
         <button onClick={onPay}

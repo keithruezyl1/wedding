@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import Modal from '@/components/Modal'
 import { Pool } from '@/lib/constants'
-import { peso } from '@/lib/money'
 import { submitPayment } from '@/lib/payments'
 
 export default function PaymentModal({
@@ -61,7 +60,7 @@ export default function PaymentModal({
                 placeholder="0.00"
                 className="w-full rounded-xl bg-white pl-8 pr-4 py-3 ring-1 ring-sand focus:ring-2 focus:ring-amber outline-none tabular-nums" />
             </div>
-            <p className="text-xs text-charcoal/45 mt-1">Suggested share: {peso(pool.share)}</p>
+            <p className="text-xs text-charcoal/45 mt-1">Suggested: {pool.suggestion}</p>
           </div>
 
           <label className="block cursor-pointer rounded-xl border-2 border-dashed border-sand hover:border-amber transition-colors p-4 text-center">

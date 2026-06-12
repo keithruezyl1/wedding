@@ -5,24 +5,32 @@ export type PoolKind = 'fare' | 'fee'
 export interface Pool {
   kind: PoolKind
   title: string
-  total: number      // peso total
-  share: number      // peso per person
   cta: string
+  suggestion: string   // short hint shown in the upload modal
+  details: string[]    // rate / schedule breakdown shown in the "where to pay" modal
 }
 
 export const POOLS: Record<PoolKind, Pool> = {
   fare: {
     kind: 'fare',
     title: 'The Boat to Neverland Fare',
-    total: 18000,
-    share: 18000 / PEOPLE_COUNT, // 1500
     cta: 'Pay the Fare',
+    suggestion: '₱600 one way · ₱480 for students',
+    details: [
+      'Economy · one way',
+      'Regular ₱600 · Students ₱480',
+      'Ferry 10:00 PM – 4:00 AM',
+    ],
   },
   fee: {
     kind: 'fee',
     title: 'This House is a Home Fee',
-    total: 10560,
-    share: 10560 / PEOPLE_COUNT, // 880
     cta: 'Pay the Fee',
+    suggestion: '₱557 for 2 nights · ₱278 for 1 night',
+    details: [
+      '₱6,400 total',
+      '1 night · ₱278 (1 person)',
+      '2 nights · ₱557 each (11 people)',
+    ],
   },
 }

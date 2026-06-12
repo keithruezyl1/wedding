@@ -86,7 +86,7 @@ Scale (Tailwind):
 orients, gives feedback, or shows a relationship. Motion is **calm and unhurried**;
 this is a wedding, not a game. We animate only **`transform` and `opacity`** for
 **hardware acceleration**; never animate `width/height/top/left` in ways that cause
-**layout thrashing** (the progress bar is the one width animation, and it's isolated).
+**layout thrashing** (the pooled total animates via a number value, not layout).
 All motion honors **reduced motion**.
 
 ### 6.1 Global tokens
@@ -114,7 +114,8 @@ All motion honors **reduced motion**.
 | **Onboarding step 3** | `Fade in` (delayed) | Red line **fades in** after the background darkens (`delay ~0.3s`). Ghost-laugh audio plays. Continue button visible. |
 | **Onboarding → Dashboard** | `Crossfade` | Sequence unmounts, dashboard **fades in**. |
 | **Dashboard mount** | `Fade in` + optional `Stagger` | Header then columns **fade in**; columns may **stagger** by ~80ms for a gentle cascade. |
-| **Progress bar** | `Tween` width fill | On mount/update, fill **interpolates** from 0 → target width, ~1.2s, signature ease. Isolated `transform`-friendly width animation on its own layer. |
+| **Pooled total** | `Number ticker` | On mount/update the total **counts up** to the current pooled amount (~1.0s, signature ease, **tabular numbers**). There is no goal/target. Reduced-motion → set instantly. |
+| **Composition strip** | static `100%-stack` | Each contribution is a segment sized by its share of the pool (warm alternating shades). Visualizes what's pooled — *not* a progress bar (no target, no fill-to-goal). |
 | **Pay / primary buttons** | `Hover effect` + `Press/Tap feedback` | Hover: color `amber → coral` (~0.3s). Press: subtle **scale-down** (~0.97), ~0.12s. |
 | **Payer list item** | `Hover effect` | Background tint to `cream` on hover, ~0.2s. |
 | **Modal open** | `Scale in` + `Fade in` | Overlay **fades in** (~0.3s); panel **scales in** from 0.98 + rises 16px, signature ease (~0.45s). Reduced-motion → fade only. |
@@ -132,7 +133,7 @@ All motion honors **reduced motion**.
 ### 6.4 Reduced motion (required)
 - Use motion's `useReducedMotion()`. When true:
   - Replace translate/scale entrances with **opacity-only** `fade in`.
-  - Progress bar jumps to its value (duration 0).
+  - Pooled total is set instantly (no count-up).
   - No background color tween drama — switch instantly.
   - Confetti may still fire (it's a discrete celebration, not continuous motion) — acceptable.
 
