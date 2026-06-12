@@ -15,11 +15,11 @@ export const POOLS: Record<PoolKind, Pool> = {
     kind: 'fare',
     title: 'The Boat to Neverland Fare',
     cta: 'Pay the Fare',
-    suggestion: '₱600 one way · ₱480 for students',
+    suggestion: 'Economy ₱600 · Tourist ₱780 (students ₱480 / ₱624)',
     details: [
-      'Economy · one way',
-      'Regular ₱600 · Students ₱480',
-      'Ferry 10:00 PM – 4:00 AM',
+      'One way · Ferry 10:00 PM – 4:00 AM',
+      'Economy: ₱600 (₱480 students)',
+      'Tourist / aircon: ₱780 (₱624 students)',
     ],
   },
   fee: {

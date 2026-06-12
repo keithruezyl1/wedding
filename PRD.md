@@ -65,11 +65,11 @@ like a wedding invitation that happens to collect money.
 
 | Pool | `kind` | Title | Suggested amount | CTA |
 |---|---|---|---|---|
-| Fare | `fare` | **The Boat to Neverland Fare** | ₱600 one way · ₱480 for students | Pay the Fare |
+| Fare | `fare` | **The Boat to Neverland Fare** | Economy ₱600 · Tourist ₱780 (students ₱480 / ₱624) | Pay the Fare |
 | Fee | `fee` | **This House is a Home Fee** | ₱557 for 2 nights · ₱278 for 1 night | Pay the Fee |
 
 **Rate / schedule details** (shown in the "Where to send money" modal):
-- **Boat to Neverland (Fare):** Economy · one way · Regular ₱600 / Students ₱480 · Ferry 10:00 PM – 4:00 AM.
+- **Boat to Neverland (Fare):** one way · Ferry 10:00 PM – 4:00 AM · Economy ₱600 (₱480 students) · Tourist/aircon ₱780 (₱624 students).
 - **House is a Home (Fee):** ₱6,400 total · 1 night ₱278 (1 person) · 2 nights ₱557 each (11 people).
 
 ### Pooled amount (no goal)
